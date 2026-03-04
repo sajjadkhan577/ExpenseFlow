@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseFlow - Professional Expense Management</title>
+
+    <!-- PWA Manifest (Embedded) -->
+    <link rel="manifest"
+        href="data:application/manifest+json,{'name':'ExpenseFlow','short_name':'ExpFlow','start_url':'.','display':'standalone','background_color':'#ffffff','theme_color':'#10b981'}">
+
+    <!-- CDNs -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="">
+
+    <!-- Mobile Navigation Toggle -->
+    <button class="btn btn-primary mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <div class="px-4 mb-4">
+            <h4 class="fw-bold"><i class="fas fa-wallet me-2"></i> EXPENSEFLOW</h4>
+            <p class="small opacity-75">Professional Edition</p>
+        </div>
+        <div class="nav flex-column px-2">
+            <a href="#" class="nav-link active" data-section="dashboard">
+                <i class="fas fa-chart-line"></i> <span data-i18n="navDashboard">Dashboard</span>
+            </a>
+            <a href="#" class="nav-link" data-section="add-transaction">
+                <i class="fas fa-plus-circle"></i> <span data-i18n="navAdd">Add Transaction</span>
+            </a>
+            <a href="#" class="nav-link" data-section="history">
+                <i class="fas fa-history"></i> <span data-i18n="navHistory">History</span>
+            </a>
+            <a href="#" class="nav-link" data-section="reports">
+                <i class="fas fa-file-invoice-dollar"></i> <span data-i18n="navReports">Reports</span>
+            </a>
+            <a href="#" class="nav-link" data-section="tax-calc">
+                <i class="fas fa-calculator"></i> <span data-i18n="navTax">Tax Calculator</span>
+            </a>
+            <a href="#" class="nav-link" data-section="settings">
+                <i class="fas fa-cog"></i> <span data-i18n="navSettings">Settings</span>
+            </a>
+        </div>
+
+        <div class="mt-auto p-4 border-top border-white border-opacity-25">
+            <div class="d-flex align-items-center gap-2">
+                <img src="https://ui-avatars.com/api/?name=User&background=f59e0b&color=fff" id="profileImg"
+                    class="rounded-circle" width="32">
+                <div class="small overflow-hidden">
+                    <div class="fw-bold text-truncate" id="profileNameDisplay">User</div>
+                    <div class="opacity-75" id="budgetStatus">Budget OK</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="content">
+        <div class="top-nav">
+            <div>
+                <h2 class="fw-bold mb-0" id="sectionTitle" data-i18n="titleDashboard">Dashboard</h2>
+                <p class="text-muted small mb-0" id="currentDateDisplay">Wednesday, February 11, 2026</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-link text-decoration-none" onclick="toggleDarkMode()">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown">
+                        <i class="fas fa-globe me-1"></i> <span id="currentLang">English</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="setLanguage('en')">English</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="setLanguage('ur')">اردو (Urdu)</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="setLanguage('ps')">پښتو (Pashto)</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section active">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card stat-card border-start border-4 border-success">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0" data-i18n="income">Total Income</p>
+                            <h4 class="fw-bold mb-0">₨ <span id="totalIncome">0</span></h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card border-start border-4 border-danger">
+                        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0" data-i18n="expenses">Total Expenses</p>
+                            <h4 class="fw-bold mb-0">₨ <span id="totalExpenses">0</span></h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card border-start border-4 border-primary">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="fas fa-scale-balanced"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0" data-i18n="balance">Net Balance</p>
+                            <h4 class="fw-bold mb-0">₨ <span id="netBalance">0</span></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Stats (New) -->
+            <div id="comparisonStats" class="row g-4 mb-2 d-none">
+                <div class="col-12">
+                    <div class="card p-3 bg-light border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-bold mb-1" data-i18n="spendingComparison">Month Comparison</h6>
+                                <p class="small text-muted mb-0" id="comparisonText">Comparing current data with
+                                    previous period...</p>
+                            </div>
+                            <div class="text-end">
+                                <h5 class="fw-bold mb-0" id="comparisonValue">0%</h5>
+                                <span class="badge" id="comparisonBadge">No Change</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-2 g-4">
+                <div class="col-lg-7">
+                    <div class="card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-0" data-i18n="categoryBreakdown">Category Breakdown</h5>
+                                <p class="x-small text-muted mb-0" id="currentPeriodLabel">Full History</p>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="month" class="form-control form-control-sm" id="dashboardMonthFilter"
+                                    onchange="App.handleDashboardFilter()" style="width: 140px;">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="App.resetDashboardFilter()"
+                                    title="Reset">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div style="height: 300px;">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0" data-i18n="recentTransactions">Recent Activity</h5>
+                            <a href="#" onclick="showSection('history')" class="small text-primary text-decoration-none"
+                                data-i18n="viewAll">View All</a>
+                        </div>
+                        <div id="recentTransactionsList">
+                            <!-- Transactions injected here -->
+                            <p class="text-center text-muted py-4">No recent activity</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Transaction Section -->
+        <div id="add-transaction" class="section">
+            <div class="card p-4">
+                <h5 class="fw-bold mb-4" data-i18n="addNewTransaction">Add New Transaction</h5>
+                <form id="transactionForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold" data-i18n="type">Type</label>
+                            <select class="form-select" id="transType" required>
+                                <option value="expense" data-i18n="expense">Expense</option>
+                                <option value="income" data-i18n="income">Income</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold" data-i18n="amount">Amount (PKR)</label>
+                            <input type="number" class="form-control" id="transAmount" placeholder="e.g. 500" required
+                                min="1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold" data-i18n="category">Category</label>
+                            <select class="form-select" id="transCategory" required>
+                                <option value="Food" data-i18n="catFood">Food</option>
+                                <option value="Transport" data-i18n="catTransport">Transport</option>
+                                <option value="Utilities" data-i18n="catUtilities">Utilities</option>
+                                <option value="Books/Fees" data-i18n="catBooks">Books/Fees</option>
+                                <option value="Entertainment" data-i18n="catEntertainment">Entertainment</option>
+                                <option value="Business" data-i18n="catBusiness">Business</option>
+                                <option value="Salary" data-i18n="catSalary">Salary/Income</option>
+                                <option value="Other" data-i18n="catOther">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold" data-i18n="date">Date</label>
+                            <input type="text" class="form-control" id="transDate" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold" data-i18n="description">Description</label>
+                            <input type="text" class="form-control" id="transDesc"
+                                placeholder="e.g. Coffee at cafe, Bus fare..." required>
+                        </div>
+                        <div class="col-12 pt-2">
+                            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" data-i18n="btnSave">Save
+                                Transaction</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card p-4 mt-4 bg-primary bg-opacity-10 border-0">
+                <div class="d-flex gap-3">
+                    <i class="fas fa-lightbulb text-primary fs-4 mt-1"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1" data-i18n="savingTipTitle">Smart Saving Tip</h6>
+                        <p class="small mb-0 opacity-75" data-i18n="savingTipBody">Track your expenses regularly to identify spending patterns and optimize your budget for better financial management.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div id="history" class="section">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0" data-i18n="transactionHistory">Transaction History</h5>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm" id="historySearch"
+                            placeholder="Search..." onkeyup="App.filterHistory()">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th data-i18n="date">Date</th>
+                                <th data-i18n="category">Category</th>
+                                <th data-i18n="description">Description</th>
+                                <th data-i18n="amount">Amount</th>
+                                <th data-i18n="actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <!-- Transactions injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div id="reports" class="section">
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0" data-i18n="spendingTrends">Spending Trends</h5>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary active" onclick="App.renderReports('weekly')"
+                                    data-i18n="weekly">Weekly</button>
+                                <button class="btn btn-outline-primary" onclick="App.renderReports('monthly')"
+                                    data-i18n="monthly">Monthly</button>
+                            </div>
+                        </div>
+                        <div style="height: 350px;">
+                            <canvas id="trendsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card p-4">
+                        <h5 class="fw-bold mb-4" data-i18n="exportData">Export Data</h5>
+                        <p class="small text-muted mb-4" data-i18n="exportDesc">Download your financial records for
+                            university submission or personal archival.</p>
+                        <button class="btn btn-outline-success w-100 mb-2 py-2" onclick="App.exportCSV()">
+                            <i class="fas fa-file-csv me-2"></i> <span data-i18n="btnCSV">Export as CSV</span>
+                        </button>
+                        <button class="btn btn-outline-danger w-100 py-2" onclick="App.exportPDF()">
+                            <i class="fas fa-file-pdf me-2"></i> <span data-i18n="btnPDF">Export as PDF</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tax Calculator Section -->
+        <div id="tax-calc" class="section">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card p-4">
+                        <h5 class="fw-bold mb-4" data-i18n="taxCalcTitle">Pakistan Tax Calculator (FBR 2026)</h5>
+                        <form id="taxForm">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold" data-i18n="annualIncome">Annual Income
+                                    (PKR)</label>
+                                <input type="number" class="form-control" id="annualIncome" placeholder="e.g. 1200000"
+                                    required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold" data-i18n="deductions">Eligible
+                                    Deductions</label>
+                                <div class="form-check small mb-2">
+                                    <input class="form-check-input" type="checkbox" id="deductEdu">
+                                    <label class="form-check-label" for="deductEdu" data-i18n="deductEduText">Education
+                                        Expenses (Up to 5%)</label>
+                                </div>
+                                <div class="form-check small mb-2">
+                                    <input class="form-check-input" type="checkbox" id="deductCharity">
+                                    <label class="form-check-label" for="deductCharity"
+                                        data-i18n="deductCharityText">Charity/Zakat</label>
+                                </div>
+                                <div class="form-check small">
+                                    <input class="form-check-input" type="checkbox" id="deductBusiness">
+                                    <label class="form-check-label" for="deductBusiness"
+                                        data-i18n="deductBusinessText">Business Costs (For Businessmen)</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold"
+                                data-i18n="btnCalcTax">Calculate Liability</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card p-4 h-100 bg-light border-0">
+                        <h5 class="fw-bold mb-4" data-i18n="taxResults">Tax Summary</h5>
+                        <div id="taxResultsArea">
+                            <p class="text-muted text-center py-5" data-i18n="calcPrompt">Enter income details to
+                                see
+                                estimated tax.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settings" class="section">
+            <div class="card p-4">
+                <h5 class="fw-bold mb-4" data-i18n="settings">Settings & Profile</h5>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold" data-i18n="userName">User Name</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="profileNameInput" value="User">
+                                <button class="btn btn-outline-primary" onclick="App.updateProfileName()"
+                                    data-i18n="btnUpdate">Update</button>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold" data-i18n="monthlyBudget">Monthly Budget Goal
+                                (PKR)</label>
+                            <input type="number" class="form-control" id="budgetInput" value="10000"
+                                onchange="App.updateBudget()">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold" data-i18n="clearDataTitle">Reset
+                                Application</label>
+                            <p class="small text-muted" data-i18n="clearDataDesc">This will delete all transactions
+                                and
+                                reset profile settings.</p>
+                            <button class="btn btn-outline-danger btn-sm" onclick="App.resetData()">
+                                <i class="fas fa-trash-alt me-2"></i> <span data-i18n="btnClearAll">Clear All
+                                    Data</span>
+                            </button>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">PWA / Offline Access</label>
+                            <div class="p-3 bg-white border rounded">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="fas fa-mobile-screen-button text-success fs-3"></i>
+                                    <div>
+                                        <p class="small fw-bold mb-0">App is ready for install</p>
+                                        <p class="x-small text-muted mb-0">Use "Add to Home Screen" in browser menu.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Edit Transaction Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title fw-bold" data-i18n="editTransaction">Edit Transaction</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="editForm">
+                        <input type="hidden" id="editId">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold" data-i18n="type">Type</label>
+                                <select class="form-select" id="editType" required>
+                                    <option value="expense" data-i18n="expense">Expense</option>
+                                    <option value="income" data-i18n="income">Income</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold" data-i18n="amount">Amount (PKR)</label>
+                                <input type="number" class="form-control" id="editAmount" required min="1">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold" data-i18n="category">Category</label>
+                                <select class="form-select" id="editCategory" required>
+                                    <option value="Food" data-i18n="catFood">Food</option>
+                                    <option value="Transport" data-i18n="catTransport">Transport</option>
+                                    <option value="Utilities" data-i18n="catUtilities">Utilities</option>
+                                    <option value="Books/Fees" data-i18n="catBooks">Books/Fees</option>
+                                    <option value="Entertainment" data-i18n="catEntertainment">Entertainment</option>
+                                    <option value="Business" data-i18n="catBusiness">Business</option>
+                                    <option value="Salary" data-i18n="catSalary">Salary/Income</option>
+                                    <option value="Other" data-i18n="catOther">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold" data-i18n="date">Date</label>
+                                <input type="text" class="form-control" id="editDate" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold" data-i18n="description">Description</label>
+                                <input type="text" class="form-control" id="editDesc" required>
+                            </div>
+                            <div class="col-12 pt-3">
+                                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold"
+                                    data-i18n="btnUpdate">Update Transaction</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
