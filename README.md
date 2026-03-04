@@ -46,11 +46,9 @@ git init
 git add .
 git commit -m "feat: initial commit — add ExpenseFlow frontend (index.html, script.js, styles.css)"
 git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/ExpenseFlow.git
+git remote add origin https://github.com/sajjadkhan577/ExpenseFlow.git
 git push -u origin main
 ```
-
-Replace `YOUR-USERNAME` with your GitHub username before pushing.
 
 ## License
 
@@ -58,4 +56,4 @@ This project is available under the MIT License. See `LICENSE`.
 
 ## Contact
 
-Replace with your name / email if you want attribution in the repo.
+sajjad2003khan@gmail.com
